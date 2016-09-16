@@ -1,0 +1,331 @@
+{\rtf1\ansi\ansicpg1251\deff0\deflang1049{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang1033\f0\fs22 /*!\par
+ * ASP.NET SignalR JavaScript Library v2.2.0\par
+ * {\field{\*\fldinst{HYPERLINK "http://signalr.net/"}}{\fldrslt{\ul\cf1 http://signalr.net/}}}\f0\fs22\par
+ *\par
+ * Copyright Microsoft Open Technologies, Inc. All rights reserved.\par
+ * Licensed under the Apache 2.0\par
+ * {\field{\*\fldinst{HYPERLINK "https://github.com/SignalR/SignalR/blob/master/LICENSE.md"}}{\fldrslt{\ul\cf1 https://github.com/SignalR/SignalR/blob/master/LICENSE.md}}}\f0\fs22\par
+ *\par
+ */\par
+\par
+/// <reference path="..\\..\\SignalR.Client.JS\\Scripts\\jquery-1.6.4.js" />\par
+/// <reference path="jquery.signalR.js" />\par
+(function ($, window, undefined) \{\par
+    /// <param name="$" type="jQuery" />\par
+    "use strict";\par
+\par
+    if (typeof ($.signalR) !== "function") \{\par
+        throw new Error("SignalR: SignalR is not loaded. Please ensure jquery.signalR-x.js is referenced before ~/signalr/js.");\par
+    \}\par
+\par
+    var signalR = $.signalR;\par
+\par
+    function makeProxyCallback(hub, callback) \{\par
+        return function () \{\par
+            // Call the client hub method\par
+            callback.apply(hub, $.makeArray(arguments));\par
+        \};\par
+    \}\par
+\par
+    function registerHubProxies(instance, shouldSubscribe) \{\par
+        var key, hub, memberKey, memberValue, subscriptionMethod;\par
+\par
+        for (key in instance) \{\par
+            if (instance.hasOwnProperty(key)) \{\par
+                hub = instance[key];\par
+\par
+                if (!(hub.hubName)) \{\par
+                    // Not a client hub\par
+                    continue;\par
+                \}\par
+\par
+                if (shouldSubscribe) \{\par
+                    // We want to subscribe to the hub events\par
+                    subscriptionMethod = hub.on;\par
+                \} else \{\par
+                    // We want to unsubscribe from the hub events\par
+                    subscriptionMethod = hub.off;\par
+                \}\par
+\par
+                // Loop through all members on the hub and find client hub functions to subscribe/unsubscribe\par
+                for (memberKey in hub.client) \{\par
+                    if (hub.client.hasOwnProperty(memberKey)) \{\par
+                        memberValue = hub.client[memberKey];\par
+\par
+                        if (!$.isFunction(memberValue)) \{\par
+                            // Not a client hub function\par
+                            continue;\par
+                        \}\par
+\par
+                        subscriptionMethod.call(hub, memberKey, makeProxyCallback(hub, memberValue));\par
+                    \}\par
+                \}\par
+            \}\par
+        \}\par
+    \}\par
+\par
+    $.hubConnection.prototype.createHubProxies = function () \{\par
+        var proxies = \{\};\par
+        this.starting(function () \{\par
+            // Register the hub proxies as subscribed\par
+            // (instance, shouldSubscribe)\par
+            registerHubProxies(proxies, true);\par
+\par
+            this._registerSubscribedHubs();\par
+        \}).disconnected(function () \{\par
+            // Unsubscribe all hub proxies when we "disconnect".  This is to ensure that we do not re-add functional call backs.\par
+            // (instance, shouldSubscribe)\par
+            registerHubProxies(proxies, false);\par
+        \});\par
+\par
+        proxies['mainHub'] = this.createHubProxy('mainHub'); \par
+        proxies['mainHub'].client = \{ \};\par
+        proxies['mainHub'].server = \{\par
+            attachIdentity: function (name, password) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["AttachIdentity"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            beginCollectRain: function (key) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["BeginCollectRain"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            cancelWithdrawals: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["CancelWithdrawals"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            changePassword: function (oldpassword, newpassword) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["ChangePassword"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            collectRain: function (host, key, challenge, response) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["CollectRain"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            confirmTotpSecret: function (number) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["ConfirmTotpSecret"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            createIdentity: function (name, password) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["CreateIdentity"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            createUser: function (username, password) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["CreateUser"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            detectBrowser: function (txt) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["DetectBrowser"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getApiKey: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetApiKey"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getBalanceAdjustments: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetBalanceAdjustments"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getBanInfoChat: function (accountId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetBanInfoChat"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getBanRequests: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetBanRequests"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getBetBatchDetails: function (betBatchId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetBetBatchDetails"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getDepositAddress: function (currencyId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetDepositAddress"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getDeposits: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetDeposits"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getFaucetPayouts: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetFaucetPayouts"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getRadios: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetRadios"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getReferralPayouts: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetReferralPayouts"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getReferrals: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetReferrals"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getServerSeedHash: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetServerSeedHash"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getStartupInfo: function (wantBets) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetStartupInfo"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getTotpSecret: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetTotpSecret"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            getWithdrawals: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["GetWithdrawals"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            joinRoom: function (roomId, rejoin) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["JoinRoom"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            placeAutomatedBets: function (basePayIn, guessLow, guessHigh, maxBets, resetOnWin, resetOnLose, increaseOnWinPercent, increaseOnLosePercent, maxAllowedPayIn, resetOnLoseMaxBet, stopOnLoseMaxBet, stopMaxBalance, stopMinBalance, startingPayIn, clientSeed, currencyId, newProtocol) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["PlaceAutomatedBets"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            placeBet: function (payIn, guessLow, guessHigh, clientSeed, currencyId, newProtocol) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["PlaceBet"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            report: function (text) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["Report"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            reportRainStatus: function (code) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["ReportRainStatus"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            requestBan: function (accountId, banMinutes, notes) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["RequestBan"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            requestFaucetPayout: function (host, challenge, response) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["RequestFaucetPayout"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            requestReferralPayout: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["RequestReferralPayout"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            sendChatText: function (text, roomId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SendChatText"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            sendContactMessage: function (text) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SendContactMessage"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setAllowKeyboardBetParams: function (allow) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetAllowKeyboardBetParams"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setAllowKeyboardBets: function (allow) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetAllowKeyboardBets"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setAllowKeyboardMaxBet: function (allow) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetAllowKeyboardMaxBet"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setAnnounceHighBets: function (announce, threshhold, currencyId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetAnnounceHighBets"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setClientSeed: function (seed) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetClientSeed"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setConfirmMaxBet: function (confirm) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetConfirmMaxBet"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setFriendlyName: function (name) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetFriendlyName"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setManualSeed: function (manual) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetManualSeed"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setOverlappingBetsAllowed: function (allow) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetOverlappingBetsAllowed"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setStreamAllBets: function (allow) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetStreamAllBets"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            setWarnSwitchCurrencies: function (warn) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SetWarnSwitchCurrencies"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            stillAlive: function () \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["StillAlive"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            supportGetAccountInfo: function (accountId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SupportGetAccountInfo"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            switchLogin: function (username, password, totp) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["SwitchLogin"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            telemetry: function (flags) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["Telemetry"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            test: function (accountId, testReport) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["Test"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            transfer: function (amount, accountId, totp, currencyId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["Transfer"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            tryAddContactMessage: function (accountid, text) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["TryAddContactMessage"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            twoFactorAdjust: function (date, languages) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["TwoFactorAdjust"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            updateEmail: function (email) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["UpdateEmail"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            updateEmergencyAddress: function (bitcoinAddress) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["UpdateEmergencyAddress"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            updateRadio: function (radioId, title, subtitle, url) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["UpdateRadio"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            voteForBan: function (banRequestId, notes) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["VoteForBan"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            wantBetBroadcasts: function (want) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["WantBetBroadcasts"], $.makeArray(arguments)));\par
+             \},\par
+\par
+            withdraw: function (amount, bitcoinAddress, totp, currencyId) \{\par
+                return proxies['mainHub'].invoke.apply(proxies['mainHub'], $.merge(["Withdraw"], $.makeArray(arguments)));\par
+             \}\par
+        \};\par
+\par
+        return proxies;\par
+    \};\par
+\par
+    signalR.hub = $.hubConnection("/signalr", \{ useDefaultPath: false \});\par
+    $.extend(signalR, signalR.hub.createHubProxies());\par
+\par
+\}(window.jQuery, window));\par
+}
+ 
